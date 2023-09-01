@@ -11,7 +11,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta name="title" content="MultiLend" />
         <meta
           name="description"
-          content="TODO"
+          content="Deposit collateral and take out debt freely across multiple chains."
         />
         <meta charSet="UTF-8" />
         <meta
