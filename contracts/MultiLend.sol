@@ -149,6 +149,10 @@ contract MultiLend {
         );
     }
 
+function liquidateDemo(address user) public {
+        balance[user] = 0;
+    }
+
     function calculateRepaymentWithInterest(
         uint256 principal
     ) public view returns (uint256) {
