@@ -2,62 +2,126 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "truffle/console.sol"
 
 contract MultiLend {
-    
-    mapping(address => uint256) public supplied;
+    mapping(address => uint256) public balance;
     mapping(address => uint256) public borrowed;
-    
+
+    event BorrowCS(
+        address recipient,
+        uint256 amount,
+        uint256 chain,
+        address token
+    );
+    event Repay(
+        address recipient,
+        uint256 amount,
+        uint256 chain,
+        address token
+    );
+
     IERC20 public token;
-    
+
     uint256 public interestRate = 5;
-    
+
     constructor(address _token) {
         token = IERC20(_token);
     }
-    
-    function supply(uint256 amount) external {
-        require(token.transferFrom(msg.sender, address(this), amount), "Token transfer failed");
-        supplied[msg.sender] += amount;
+
+    function supply(uint256 amount) public {
+        require(
+            token.transferFrom(msg.sender, address(this), amount),
+            "Token transfer failed"
+        );
+        balance[msg.sender] += amount;
     }
-    
-    function withdraw(uint256 amount) external {
-        require(supplied[msg.sender] >= amount, "Insufficient balance");
-        supplied[msg.sender] -= amount;
+
+    function withdraw(uint256 amount) public {
+        require(balance[msg.sender] >= amount, "Insufficient balance");
         require(token.transfer(msg.sender, amount), "Token transfer failed");
+        balance[msg.sender] -= amount;
     }
-    
-    function borrow(uint256 amount) external {
-        require(supplied[msg.sender] * 100 >= amount * 80, "Insufficient collateral");
-        require(token.balanceOf(address(this)) >= amount, "Insufficient liquidity");
+
+    function borrow(uint256 amount) public {
+        uint256 collateralNeeded = (amount * 100) / 80;
+        require(
+            balance[msg.sender] < collateralNeeded,
+            "Insufficient collateral"
+        );
+        require(
+            token.balanceOf(address(this)) >= amount,
+            "Insufficient liquidity"
+        );
+        require(token.transfer(msg.sender, amount), "Token transfer failed");
+        balance[msg.sender] -= collateralNeeded;
         borrowed[msg.sender] += amount;
-        require(token.transfer(msg.sender, amount), "Token transfer failed");
     }
-    
-    function repay(uint256 amount) external {
+
+    function borrowCS(uint256 amount, uint256 chain, address _token) public {
+        uint256 collateralNeeded = (amount * 100) / 80;
+        require(
+            balance[msg.sender] >= collateralNeeded,
+            "Insufficient collateral"
+        );
+
+        balance[msg.sender] -= collateralNeeded;
+        // borrowed[msg.sender] += amount;
+        emit BorrowCS(msg.sender, amount, chain, _token);
+    }
+
+    function repay(uint256 amount) public {
         uint256 repaymentWithInterest = calculateRepaymentWithInterest(amount);
-        require(borrowed[msg.sender] >= repaymentWithInterest, "Insufficient borrowed amount");
-        require(token.transferFrom(msg.sender, address(this), repaymentWithInterest), "Token transfer failed");
-        borrowed[msg.sender] -= repaymentWithInterest;
+        require(
+            borrowed[msg.sender] >= amount,
+            "Insufficient repayment amount"
+        );
+
+        require(
+            token.transferFrom(
+                msg.sender,
+                address(this),
+                repaymentWithInterest
+            ),
+            "Token transfer failed"
+        );
+
+        balance[msg.sender] += (amount * 100) / 80;
+        borrowed[msg.sender] -= amount;
     }
-    
-    function calculateRepaymentWithInterest(uint256 principal) public view returns(uint256) {
+
+    function repayCS(uint256 amount, uint256 chain, address _token) public {
+        uint256 repaymentWithInterest = calculateRepaymentWithInterest(amount);
+        require(
+            borrowed[msg.sender] >= amount,
+            "Insufficient repayment amount"
+        );
+        require(
+            token.transferFrom(
+                msg.sender,
+                address(this),
+                repaymentWithInterest
+            ),
+            "Token transfer failed"
+        );
+        borrowed[msg.sender] -= amount;
+        emit Repay(msg.sender, amount, chain, _token);
+    }
+
+    function calculateRepaymentWithInterest(
+        uint256 principal
+    ) public view returns (uint256) {
         return principal + ((principal * interestRate) / 100);
     }
-    
-    function getAccountDetails(address account) public view returns(uint256 _supplied, uint256 _borrowed, uint256 _availableToBorrow) {
-        _supplied = supplied[account];
-        _borrowed = borrowed[account];
-        
-        uint256 maxBorrowable = (_supplied * 80) / 100;
-        
-        if(_borrowed >= maxBorrowable) {
-            _availableToBorrow = 0;
-        } else {
-            _availableToBorrow = maxBorrowable - _borrowed;
-        }
-        
-        return (_supplied, _borrowed, _availableToBorrow);
+
+    function borrowOut(address recipient, uint256 amount) public {
+        require(
+            token.transferFrom(address(this), recipient, amount),
+            "Token transfer failed"
+        );
+        borrowed[recipient] += amount;
+    }
+
+    function repayOut(address recipient, uint256 amount) public {
+        balance[recipient] += (amount * 100) / 80; 
     }
 }
