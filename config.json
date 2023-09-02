@@ -1,14 +1,14 @@
 {
   "celo": {
-    "usdc": "0xb8bA0DE6AB8ee0Bc2DfE30ac6969852918A75309",
-    "multilend": "0x93EA52C08c9Fbc6aFE1a20aB75b36c60b4B8974a"
+    "usdc": "0x2d233EdaafC09cd9274c1Af75b2E7bde57c1f56C",
+    "multilend": "0x75c0ab0C4299D1dD6Fbad2F9a84c39aAAbC22558"
   },
   "mantle": {
-    "usdc": "0xfc166fa5dc0069fa5fb782759318533f0ec8bfa3",
-    "multilend": "0xb8ba0de6ab8ee0bc2dfe30ac6969852918a75309"
+    "usdc": "0x2eAA5aFe3c849865DbE10b0F4159142E4DDd7b87",
+    "multilend": "0xAa2ff0bE97cB33540e18233F24a94FB47B557811"
   },
   "sepolia": {
-    "usdc": "0xfc166fa5dc0069fa5fb782759318533f0ec8bfa3",
-    "multilend": "0xb8ba0de6ab8ee0bc2dfe30ac6969852918a75309"
+    "usdc": "0x93EA52C08c9Fbc6aFE1a20aB75b36c60b4B8974a",
+    "multilend": "0xF15A508A4f99d634FBDdFC85799048bDEf5ff679"
   }
 }
