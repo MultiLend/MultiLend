@@ -83,7 +83,7 @@ module.exports = {
     },
 
     sepolia: {
-     provider: () => new HDWalletProvider(PRIVATE_KEY, 'https://eth-sepolia.public.blastapi.io'),
+     provider: () => new HDWalletProvider(PRIVATE_KEY, 'https://rpc.notadegen.com/eth/sepolia'),
      network_id: 11155111,
     },
 
