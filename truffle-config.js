@@ -81,6 +81,13 @@ module.exports = {
      provider: () => new HDWalletProvider(PRIVATE_KEY, 'https://rpc.testnet.mantle.xyz'),
      network_id: 5001,
     },
+
+    sepolia: {
+     provider: () => new HDWalletProvider(PRIVATE_KEY, 'https://eth-sepolia.public.blastapi.io'),
+     network_id: 11155111,
+    },
+
+
     // An additional network, but with some advanced options…
     // advanced: {
     //   port: 8777,             // Custom port
