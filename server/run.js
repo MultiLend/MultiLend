@@ -56,8 +56,8 @@ celoContract.on("BorrowCS", async (recipient, amount, chain, tokenAddress) => {
       break;
     case 11155111n:
       console.log("-- Received event to Borrow on Sepolia Chain --");
-      const txMantle = await sepoliaContract.borrowOut(recipient, amount);
-      console.log(`Borrowed on Sepolia Chain: ${txMantle.hash}`);
+      const txSepolia = await sepoliaContract.borrowOut(recipient, amount);
+      console.log(`Borrowed on Sepolia Chain: ${txSepolia.hash}`);
  
     default:
       console.error("Something went wrong, couldnt detect chain");
@@ -74,8 +74,8 @@ sepoliaContract.on("BorrowCS", async (recipient, amount, chain, tokenAddress) =>
       break;
     case 44787n:
       console.log("-- Received event to Borrow on Sepolia Chain --");
-      const txMantle = await sepoliaContract.borrowOut(recipient, amount);
-      console.log(`Borrowed on Sepolia Chain: ${txMantle.hash}`);
+      const txSepolia = await sepoliaContract.borrowOut(recipient, amount);
+      console.log(`Borrowed on Sepolia Chain: ${txSepolia.hash}`);
  
     default:
       console.error("Something went wrong, couldnt detect chain");

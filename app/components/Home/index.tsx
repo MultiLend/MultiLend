@@ -117,8 +117,8 @@ const Home: FC = () => {
     const balMantle = await mantleTokenInstance.balanceOf(address[0]);
     setBalanceMantle(ethers.formatEther(balMantle));
 
-    // const balSepolia = await sepoliaTokenInstance.balanceOf(address[0]);
-    // setBalanceSepolia(ethers.formatEther(balSepolia));
+    const balSepolia = await sepoliaTokenInstance.balanceOf(address[0]);
+    setBalanceSepolia(ethers.formatEther(balSepolia));
   };
 
   const getPositions = async () => {
@@ -133,6 +133,9 @@ const Home: FC = () => {
     const mantleProvider = new JsonRpcProvider(
       process.env.NEXT_PUBLIC_MANTLE_RPC_URL
     );
+    const sepoliaProvider = new JsonRpcProvider(
+      process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL
+    );
 
     const multiLendCeloInstance = new ethers.Contract(
       CELO_MULTILEND,
@@ -146,10 +149,18 @@ const Home: FC = () => {
       mantleProvider
     );
 
+    const multiLendSepoloaInstance = new ethers.Contract(
+      SEPOLIA_MULTILEND,
+      MULTILEND_ABI,
+      sepoliaProvider
+    );
+
     const suppliedCelo = await multiLendCeloInstance.balance(address[0]);
     const borrowedCelo = await multiLendCeloInstance.borrowed(address[0]);
     const suppliedMantle = await multiLendMantleInstance.balance(address[0]);
     const borrowedMantle = await multiLendMantleInstance.borrowed(address[0]);
+    const suppliedSepolia = await multiLendSepoloaInstance.balance(address[0]);
+    const borrowedSepolia = await multiLendSepoloaInstance.borrowed(address[0]);
 
     setPositions({
       celo: {
@@ -161,15 +172,10 @@ const Home: FC = () => {
         borrow: ethers.formatEther(borrowedMantle),
       },
       sepolia: {
-        supply: "0",
-        borrow: "0",
+        supply: ethers.formatEther(suppliedSepolia),
+        borrow: ethers.formatEther(borrowedSepolia),
       },
     });
-
-    // console.log(suppliedCelo);
-    // console.log(borrowedCelo);
-    // console.log(suppliedMantle);
-    // console.log(borrowedMantle);
   };
 
   const lendMeta = useMemo(() => {
@@ -219,7 +225,7 @@ const Home: FC = () => {
       },
       {
         title: "Borrow Limit",
-        value: total > 0 ? (total * 0.80).toFixed(2) : "0.00",
+        value: total > 0 ? (total * 0.8).toFixed(2) : "0.00",
       },
     ];
   }, [borrowInput, positions]);
@@ -372,6 +378,73 @@ const Home: FC = () => {
     }
   };
 
+  const repay = async (chain: string, amount: string) => {
+    const provider = new BrowserProvider(ethereum);
+
+    switch (chain) {
+      case "celo":
+        const multiLendInstanceCelo = new ethers.Contract(
+          CELO_MULTILEND,
+          MULTILEND_ABI,
+          await provider.getSigner()
+        );
+
+        const txCelo = multiLendInstanceCelo.repayCS(
+          ethers.parseEther(amount),
+          5001,
+          CELO_USDC
+        );
+
+        console.log(txCelo);
+        break;
+      case "mantle":
+        const multiLendInstanceMnt = new ethers.Contract(
+          MANTLE_MULTILEND,
+          MULTILEND_ABI,
+          await provider.getSigner()
+        );
+
+        const txMnt = multiLendInstanceMnt.repayCS(
+          ethers.parseEther(amount),
+          44787,
+          CELO_USDC
+        );
+
+        console.log(txMnt);
+        break;
+      case "sepolia":
+        const multiLendInstanceEth = new ethers.Contract(
+          SEPOLIA_MULTILEND,
+          MULTILEND_ABI,
+          await provider.getSigner()
+        );
+
+        const txEth = multiLendInstanceEth.withdraw(ethers.parseEther(amount));
+
+        console.log(txEth);
+        break;
+    }
+  };
+
+  const liquidate = async () => {
+    const address: string[] = (await ethereum.request({
+      method: "eth_requestAccounts",
+      params: [],
+    })) as string[];
+
+    const provider = new BrowserProvider(ethereum);
+
+    const multiLendInstanceCelo = new ethers.Contract(
+      CELO_MULTILEND,
+      MULTILEND_ABI,
+      await provider.getSigner()
+    );
+
+    const tx = multiLendInstanceCelo.liquidateDemo(address[0]);
+
+    console.log(tx);
+  };
+
   return (
     <div className="flex flex-col gap-16">
       <Modals
@@ -409,7 +482,7 @@ const Home: FC = () => {
       <div className="flex flex-col gap-2">
         <h1 className="font-bold text-lg">My Positions</h1>
         {Object.entries(positions).map(([key, value]) => (
-          <div key={key}>
+          <div className="flex flex-col gap-2" key={key}>
             {value.supply !== "0" && value.supply !== "0.0" && (
               <Accordion
                 chain={key}
@@ -417,6 +490,7 @@ const Home: FC = () => {
                 action={"Withdraw"}
                 amount={value.supply}
                 onClick={withdraw}
+                liquidate={liquidate}
               />
             )}
             {value.borrow !== "0" && value.borrow !== "0.0" && (
@@ -425,13 +499,11 @@ const Home: FC = () => {
                 type={`Borrowed USDC on ${capitalizeFirstLetter(key)}`}
                 action={"Repay"}
                 amount={value.borrow}
-                onClick={withdraw}
+                onClick={repay}
               />
             )}
           </div>
         ))}
-        {/* <Accordion title="Collateral" text="this is some text" /> */}
-        {/* <div className="w-full h-12 rounded-lg bg-secondary"></div> */}
       </div>
     </div>
   );

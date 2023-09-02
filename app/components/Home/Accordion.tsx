@@ -5,12 +5,20 @@ import Button from "./Button";
 interface Props {
   chain: string;
   type: string;
-  action: string
+  action: string;
   amount: string;
-  onClick: (chain: string, amount: string) => void
+  onClick: (chain: string, amount: string) => void;
+  liquidate?: () => void;
 }
 
-const Accordion: FC<Props> = ({ chain, action, type, amount, onClick }) => {
+const Accordion: FC<Props> = ({
+  chain,
+  action,
+  type,
+  amount,
+  onClick,
+  liquidate,
+}) => {
   const [opened, setOpened] = useState(false);
 
   const toggle = () => {
@@ -58,8 +66,19 @@ const Accordion: FC<Props> = ({ chain, action, type, amount, onClick }) => {
         <div
           className={`flex items-center justify-between bg-background w-full py-2 px-3 rounded-lg`}
         >
-          <p className="font-bold text-sm">Available to {action}: <span className="font-normal">{amount}</span></p>
-          <Button title={action} isActive={true} onClick={() => onClick(chain, amount)} />
+          <p className="font-bold text-sm">
+            Available to {action}: <span className="font-normal">{amount}</span>
+          </p>
+          <div className="flex gap-2">
+            {liquidate && (
+              <Button title={"Liquidate"} isActive={true} onClick={liquidate} />
+            )}
+            <Button
+              title={action}
+              isActive={true}
+              onClick={() => onClick(chain, amount)}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IChronicle.sol"; // Adjust the path as needed
+
 // import "truffle/console.sol";
 
 contract MultiLend {
@@ -149,7 +150,7 @@ contract MultiLend {
         );
     }
 
-function liquidateDemo(address user) public {
+    function liquidateDemo(address user) public {
         balance[user] = 0;
     }
 
