@@ -22,7 +22,7 @@ const Accordion: FC<Props> = ({ title, text }) => {
         <div className="flex items-center gap-2">
           <div className="relative">
             <Image
-              src="/chains/mantle.svg"
+              src="/chains/celo.svg"
               alt="celo-chain"
               width="32"
               height="32"

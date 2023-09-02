@@ -42,7 +42,7 @@ const Header: FC = () => {
 
   return (
     <header className="py-10">
-      {/* <ToastContainer
+      <ToastContainer
         position="bottom-right"
         autoClose={5000}
         hideProgressBar
@@ -53,7 +53,7 @@ const Header: FC = () => {
         draggable
         pauseOnHover
         theme="colored"
-      /> */}
+      />
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <nav className="relative z-50 flex justify-between">
           <div className="flex items-center md:gap-x-4">
