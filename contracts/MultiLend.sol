@@ -3,16 +3,15 @@ pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IChronicle.sol"; // Adjust the path as needed
-import "truffle/console.sol";
-
+// import "truffle/console.sol";
 
 contract MultiLend {
     mapping(address => uint256) public balance;
     mapping(address => uint256) public borrowed;
 
     address public chronicleOracleAddress;
-	uint256 public liquidationDiscount = 90; // Discount in percentage, can set in constructor or by a function.
-	uint256 public minimumCollateralPercentage = 80; // Minimum required collateral in percentage, can be updated.
+    uint256 public liquidationDiscount = 90; // Discount in percentage, can set in constructor or by a function.
+    uint256 public minimumCollateralPercentage = 80; // Minimum required collateral in percentage, can be updated.
 
     event BorrowCS(
         address recipient,
@@ -114,36 +113,41 @@ contract MultiLend {
         emit Repay(msg.sender, amount, chain, _token);
     }
 
-function getOraclePrice(address oracleAddress) public
-{
-   
-    IChronicle chronicle = IChronicle(oracleAddress);
-    uint256 oraclePrice = chronicle.read(); // Assuming the oracle returns the price in a compatible unit
-console.log(oraclePrice);
-console.log("hello");
-}
+    function liquidate(address borrower, address oracleAddress) public {
+        IChronicle chronicle = IChronicle(oracleAddress);
+        uint256 oraclePrice = chronicle.read();
+        uint256 totalBorrowValue = borrowed[borrower] * oraclePrice;
+        uint256 totalCollateralValue = balance[borrower] * oraclePrice;
 
-function liquidate(address borrower, address oracleAddress) public {
-    IChronicle chronicle = IChronicle(oracleAddress);
-    uint256 oraclePrice = chronicle.read(); // Assuming the oracle returns the price in a compatible unit
-    uint256 totalBorrowValue = borrowed[borrower] * oraclePrice; // Total value that borrower has borrowed
-    uint256 totalCollateralValue = balance[borrower] * oraclePrice; // Total value of borrower's collateral
+        require(
+            (totalCollateralValue * 100) / totalBorrowValue <
+                minimumCollateralPercentage,
+            "Account is not under-collateralized"
+        );
 
-    require(
-        totalCollateralValue * 100 / totalBorrowValue < minimumCollateralPercentage,
-        "Account is not under-collateralized"
-    );
+        uint256 amountToLiquidate = (borrowed[borrower] * liquidationDiscount) /
+            100;
+        require(
+            token.balanceOf(msg.sender) >= amountToLiquidate,
+            "Insufficient liquidation balance"
+        );
 
-    uint256 amountToLiquidate = borrowed[borrower] * liquidationDiscount / 100; // Amount to liquidate at a discount
-    require(token.balanceOf(msg.sender) >= amountToLiquidate, "Insufficient liquidation balance");
+        require(
+            token.transferFrom(msg.sender, address(this), amountToLiquidate),
+            "Token transfer failed"
+        );
 
-    require(token.transferFrom(msg.sender, address(this), amountToLiquidate), "Token transfer failed");
+        balance[borrower] = 0;
+        borrowed[borrower] = 0;
 
-    balance[borrower] = 0; // Resetting the collateral balance to zero
-    borrowed[borrower] = 0; // Resetting the borrowed amount to zero
-
-    require(token.transfer(msg.sender, amountToLiquidate * (100 - liquidationDiscount) / 100), "Token transfer failed"); // Transferring the discounted amount back to liquidator
-}
+        require(
+            token.transfer(
+                msg.sender,
+                (amountToLiquidate * (100 - liquidationDiscount)) / 100
+            ),
+            "Token transfer failed"
+        );
+    }
 
     function calculateRepaymentWithInterest(
         uint256 principal
@@ -160,6 +164,6 @@ function liquidate(address borrower, address oracleAddress) public {
     }
 
     function repayOut(address recipient, uint256 amount) public {
-        balance[recipient] += (amount * 100) / 80; 
+        balance[recipient] += (amount * 100) / 80;
     }
 }
