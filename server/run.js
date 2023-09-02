@@ -15,12 +15,12 @@ const MLContractABI = MLContractJSON.abi;
 
 const celoSigner = new ethers.Wallet(
   process.env.PRIVATE_KEY,
-  new ethers.JsonRpcProvider("https://alfajores-forno.celo-testnet.org")
+  new ethers.JsonRpcProvider(process.env.CELO_RPC_URL)
 ); // CHAINID: 44787
 
 const mantlesigner = new ethers.Wallet(
   process.env.PRIVATE_KEY,
-  new ethers.JsonRpcProvider("https://rpc.testnet.mantle.xyz")
+  new ethers.JsonRpcProvider(process.env.MANTLE_RPC_URL)
 ); // CHAINID: 5001
 
 const celoContract = new ethers.Contract(
