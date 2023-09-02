@@ -38,7 +38,7 @@ const mantleContract = new ethers.Contract(
 // Listen for BorrowCS Event
 celoContract.on("BorrowCS", async (from, amount, chain, tokenAddress) => {
   switch (chain) {
-    case "5001":
+    case 5001n:
       console.log("-- Received event to Borrow on Mantle Chain --");
       const txMantle = await mantleContract.borrowOut(from, amount);
       console.log(`Borrowed on Mantle Chain: ${txMantle.hash}`);
@@ -50,7 +50,7 @@ celoContract.on("BorrowCS", async (from, amount, chain, tokenAddress) => {
 
 mantleContract.on("BorrowCS", async (from, amount, chain, tokenAddress) => {
   switch (chain) {
-    case "44787":
+    case 44787n:
       console.log("-- Received event to Borrow on Celo Chain --");
       const txCelo = await celoContract.borrowOut(from, amount);
       console.log(`Borrowed on Celo Chain: ${txCelo.hash}`);
@@ -58,14 +58,4 @@ mantleContract.on("BorrowCS", async (from, amount, chain, tokenAddress) => {
     default:
       console.error("Something went wrong, couldnt detect chain");
   }
-});
-
-// Listen for all Events
-celoContract.on("*", (event) => {
-  console.log("Received an event on Celo: ", event);
-});
-
-// Listen for all Events
-mantleContract.on("*", (event) => {
-  console.log("Received an event on Mantle: ", event);
 });

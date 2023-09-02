@@ -1,12 +1,16 @@
 import Image from "next/image";
 import { FC, useState } from "react";
+import Button from "./Button";
 
 interface Props {
-  title: string;
-  text: string;
+  chain: string;
+  type: string;
+  action: string
+  amount: string;
+  onClick: (chain: string, amount: string) => void
 }
 
-const Accordion: FC<Props> = ({ title, text }) => {
+const Accordion: FC<Props> = ({ chain, action, type, amount, onClick }) => {
   const [opened, setOpened] = useState(false);
 
   const toggle = () => {
@@ -22,8 +26,8 @@ const Accordion: FC<Props> = ({ title, text }) => {
         <div className="flex items-center gap-2">
           <div className="relative">
             <Image
-              src="/chains/celo.svg"
-              alt="celo-chain"
+              src={`/chains/${chain}.svg`}
+              alt={`${chain}-chain`}
               width="32"
               height="32"
             />
@@ -35,7 +39,7 @@ const Accordion: FC<Props> = ({ title, text }) => {
               height="16"
             />
           </div>
-          {title}
+          {type}
         </div>
         <Image
           className={`transition-all duration-300 ${
@@ -47,12 +51,17 @@ const Accordion: FC<Props> = ({ title, text }) => {
           height="16"
         />
       </div>
-      <p
-        className={`flex items-center opacity-70 transition-all duration-300 mt-2`}
+      <div
+        className="flex transition-all duration-300 mt-2"
         style={{ maxHeight: opened ? "50px" : "0", overflow: "hidden" }}
       >
-        {text}
-      </p>
+        <div
+          className={`flex items-center justify-between bg-background w-full py-2 px-3 rounded-lg`}
+        >
+          <p className="font-bold text-sm">Available to {action}: <span className="font-normal">{amount}</span></p>
+          <Button title={action} isActive={true} onClick={() => onClick(chain, amount)} />
+        </div>
+      </div>
     </div>
   );
 };

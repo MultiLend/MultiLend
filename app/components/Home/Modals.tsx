@@ -68,6 +68,18 @@ const Modals: FC<Props> = ({
               />
               CELO
             </div>
+            <div
+              className="flex items-center gap-2 bg-background rounded-xl p-2 hover:border hover:border-outline cursor-pointer"
+              onClick={() => toggleChainModal('ETH')}
+            >
+              <Image
+                src={"/chains/eth.svg"}
+                alt={"celo-chain"}
+                width={16}
+                height={16}
+              />
+              ETH <span className="text-xs opacity-50">Sepolia</span>
+            </div>
           </div>
         </Modal>
       }

@@ -5,9 +5,32 @@ import Meta from "./Meta";
 import Button from "./Button";
 import Accordion from "./Accordion";
 import Modals from "./Modals";
+import MetaMaskSDK from "@metamask/sdk";
+import { BrowserProvider, JsonRpcProvider, ethers } from "ethers";
+import {
+  CELO_MULTILEND,
+  CELO_USDC,
+  CHAINIDS,
+  ERC20_ABI,
+  MANTLE_MULTILEND,
+  MANTLE_USDC,
+  MULTILEND_ABI,
+  SEPOLIA_MULTILEND,
+  SEPOLIA_USDC,
+} from "@/constants";
+import { capitalizeFirstLetter } from "@/utils/format";
 
 const Home: FC = () => {
   const token = "USDC";
+
+  const options = {
+    injectProvider: true,
+    dappMetadata: { name: "MultiLend", url: "MultiLend.com" },
+  };
+
+  const MMSDK = new MetaMaskSDK(options);
+
+  const ethereum = MMSDK.getProvider();
 
   const [lendInput, setLendInput] = useState("");
   const [borrowInput, setBorrowInput] = useState("");
@@ -20,13 +43,145 @@ const Home: FC = () => {
   const [chainLend, setChainLend] = useState("CELO");
   const [chainBorrow, setChainBorrow] = useState("MNT");
 
-  useEffect(() => {}, []);
+  const [balanceCelo, setBalanceCelo] = useState("0.00");
+  const [balanceMantle, setBalanceMantle] = useState("0.00");
+  const [balanceSepolia, setBalanceSepolia] = useState("0.00");
+
+  const [positions, setPositions] = useState({
+    celo: {
+      supply: "0",
+      borrow: "0",
+    },
+    mantle: {
+      supply: "0",
+      borrow: "0",
+    },
+    sepolia: {
+      supply: "0",
+      borrow: "0",
+    },
+  });
+
+  useEffect(() => {
+    getBalance();
+    getPositions();
+    const intervalId = setInterval(() => {
+      getBalance();
+      getPositions();
+    }, 5000);
+
+    // Clean up the interval when the component unmounts
+    return () => {
+      clearInterval(intervalId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const getBalance = async () => {
+    const address: string[] = (await ethereum.request({
+      method: "eth_requestAccounts",
+      params: [],
+    })) as string[];
+
+    const celoProvider = new JsonRpcProvider(
+      process.env.NEXT_PUBLIC_CELO_RPC_URL
+    );
+    const mantleProvider = new JsonRpcProvider(
+      process.env.NEXT_PUBLIC_MANTLE_RPC_URL
+    );
+    const sepoliaProvider = new JsonRpcProvider(
+      process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL
+    );
+
+    const celoTokenInstance = new ethers.Contract(
+      CELO_USDC,
+      ERC20_ABI,
+      celoProvider
+    );
+
+    const mantleTokenInstance = new ethers.Contract(
+      MANTLE_USDC,
+      ERC20_ABI,
+      mantleProvider
+    );
+
+    const sepoliaTokenInstance = new ethers.Contract(
+      SEPOLIA_USDC,
+      ERC20_ABI,
+      sepoliaProvider
+    );
+
+    const balCelo = await celoTokenInstance.balanceOf(address[0]);
+    setBalanceCelo(ethers.formatEther(balCelo));
+
+    const balMantle = await mantleTokenInstance.balanceOf(address[0]);
+    setBalanceMantle(ethers.formatEther(balMantle));
+
+    // const balSepolia = await sepoliaTokenInstance.balanceOf(address[0]);
+    // setBalanceSepolia(ethers.formatEther(balSepolia));
+  };
+
+  const getPositions = async () => {
+    const address: string[] = (await ethereum.request({
+      method: "eth_requestAccounts",
+      params: [],
+    })) as string[];
+
+    const celoProvider = new JsonRpcProvider(
+      process.env.NEXT_PUBLIC_CELO_RPC_URL
+    );
+    const mantleProvider = new JsonRpcProvider(
+      process.env.NEXT_PUBLIC_MANTLE_RPC_URL
+    );
+
+    const multiLendCeloInstance = new ethers.Contract(
+      CELO_MULTILEND,
+      MULTILEND_ABI,
+      celoProvider
+    );
+
+    const multiLendMantleInstance = new ethers.Contract(
+      MANTLE_MULTILEND,
+      MULTILEND_ABI,
+      mantleProvider
+    );
+
+    const suppliedCelo = await multiLendCeloInstance.balance(address[0]);
+    const borrowedCelo = await multiLendCeloInstance.borrowed(address[0]);
+    const suppliedMantle = await multiLendMantleInstance.balance(address[0]);
+    const borrowedMantle = await multiLendMantleInstance.borrowed(address[0]);
+
+    setPositions({
+      celo: {
+        supply: ethers.formatEther(suppliedCelo),
+        borrow: ethers.formatEther(borrowedCelo),
+      },
+      mantle: {
+        supply: ethers.formatEther(suppliedMantle),
+        borrow: ethers.formatEther(borrowedMantle),
+      },
+      sepolia: {
+        supply: "0",
+        borrow: "0",
+      },
+    });
+
+    // console.log(suppliedCelo);
+    // console.log(borrowedCelo);
+    // console.log(suppliedMantle);
+    // console.log(borrowedMantle);
+  };
 
   const lendMeta = useMemo(() => {
     return [
       {
         title: "Balance",
-        value: "0.00",
+        value:
+          chainLend === "CELO"
+            ? balanceCelo
+            : chainLend === "MNT"
+            ? balanceMantle
+            : balanceSepolia,
       },
       {
         title: "Supplied Amount",
@@ -38,31 +193,36 @@ const Home: FC = () => {
       },
       {
         title: "Average APY",
-        value: lendInput ? "5.00%" : "0.00",
+        value: lendInput ? "4.00%" : "0.00",
       },
     ];
-  }, [lendInput]);
+  }, [balanceCelo, balanceMantle, balanceSepolia, chainLend, lendInput]);
 
   const borrowMeta = useMemo(() => {
+    const total =
+      Number(positions.celo.supply) +
+      Number(positions.mantle.supply) +
+      Number(positions.sepolia.supply);
+
     return [
       {
         title: "Available",
-        value: "0.00",
+        value: total > 0 ? total.toFixed(2) : "0.00",
       },
       {
         title: "Repayment Amount",
-        value: "0.00",
+        value: borrowInput ? (Number(borrowInput) * 1.05).toFixed(2) : "0.00",
       },
       {
         title: "Interest Rate",
-        value: "0.00",
+        value: borrowInput ? "5.00%" : "0.00",
       },
       {
         title: "Borrow Limit",
-        value: "0.00",
+        value: total > 0 ? (total * 0.80).toFixed(2) : "0.00",
       },
     ];
-  }, []);
+  }, [borrowInput, positions]);
 
   const onLendInputChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setLendInput(e.target.value);
@@ -75,8 +235,11 @@ const Home: FC = () => {
   const toggleChainModal = (chain?: string) => {
     setIsChainModal(!isChainModal);
 
-    if (chain)
+    if (chain) {
       currentSide === "lend" ? setChainLend(chain) : setChainBorrow(chain);
+
+      // TODO: SWITCH CHAINS
+    }
   };
 
   const toggleLendChainModal = () => {
@@ -89,12 +252,124 @@ const Home: FC = () => {
     toggleChainModal();
   };
 
-  const lend = () => {
-    console.log(lendInput);
+  const lend = async () => {
+    const provider = new BrowserProvider(ethereum);
+
+    const usdcTokenInstance = new ethers.Contract(
+      chainLend === "CELO"
+        ? CELO_USDC
+        : chainLend === "MNT"
+        ? MANTLE_USDC
+        : SEPOLIA_USDC,
+      ERC20_ABI,
+      await provider.getSigner()
+    );
+
+    const approveTx = await usdcTokenInstance.approve(
+      chainLend === "CELO"
+        ? CELO_MULTILEND
+        : chainLend === "MNT"
+        ? MANTLE_MULTILEND
+        : SEPOLIA_MULTILEND,
+      ethers.parseEther(lendInput)
+    );
+
+    console.log(approveTx);
+
+    const multiLendInstance = new ethers.Contract(
+      chainLend === "CELO"
+        ? CELO_MULTILEND
+        : chainLend === "MNT"
+        ? MANTLE_MULTILEND
+        : SEPOLIA_MULTILEND,
+      MULTILEND_ABI,
+      await provider.getSigner()
+    );
+
+    const transaction = multiLendInstance.supply(ethers.parseEther(lendInput));
+
+    console.log(transaction);
   };
 
-  const borrow = () => {
-    console.log(borrowInput);
+  const borrow = async () => {
+    const provider = new BrowserProvider(ethereum);
+
+    // const usdcTokenInstance = new ethers.Contract(
+    //   chainLend === "CELO" ? CELO_USDC : chainLend === 'MNT' ? MANTLE_USDC : SEPOLIA_USDC,
+    //   ERC20_ABI,
+    //   await provider.getSigner()
+    // );
+
+    // const approveTx = await usdcTokenInstance.approve(
+    //   chainLend === "CELO" ? CELO_USDC : chainLend === 'MNT' ? MANTLE_USDC : SEPOLIA_USDC,
+    //   ethers.parseEther(lendInput)
+    // );
+
+    // console.log(approveTx);
+
+    const multiLendInstance = new ethers.Contract(
+      chainLend === "CELO"
+        ? CELO_MULTILEND
+        : chainLend === "MNT"
+        ? MANTLE_MULTILEND
+        : SEPOLIA_MULTILEND,
+      MULTILEND_ABI,
+      await provider.getSigner()
+    );
+
+    const transaction = multiLendInstance.borrowCS(
+      ethers.parseEther(borrowInput),
+      (CHAINIDS as any)[chainBorrow],
+      chainLend === "CELO"
+        ? CELO_USDC
+        : chainLend === "MNT"
+        ? MANTLE_USDC
+        : SEPOLIA_USDC
+    );
+
+    console.log(transaction);
+  };
+
+  const withdraw = async (chain: string, amount: string) => {
+    const provider = new BrowserProvider(ethereum);
+
+    switch (chain) {
+      case "celo":
+        const multiLendInstanceCelo = new ethers.Contract(
+          CELO_MULTILEND,
+          MULTILEND_ABI,
+          await provider.getSigner()
+        );
+
+        const txCelo = multiLendInstanceCelo.withdraw(
+          ethers.parseEther(amount)
+        );
+
+        console.log(txCelo);
+        break;
+      case "mantle":
+        const multiLendInstanceMnt = new ethers.Contract(
+          MANTLE_MULTILEND,
+          MULTILEND_ABI,
+          await provider.getSigner()
+        );
+
+        const txMnt = multiLendInstanceMnt.withdraw(ethers.parseEther(amount));
+
+        console.log(txMnt);
+        break;
+      case "sepolia":
+        const multiLendInstanceEth = new ethers.Contract(
+          SEPOLIA_MULTILEND,
+          MULTILEND_ABI,
+          await provider.getSigner()
+        );
+
+        const txEth = multiLendInstanceEth.withdraw(ethers.parseEther(amount));
+
+        console.log(txEth);
+        break;
+    }
   };
 
   return (
@@ -133,7 +408,29 @@ const Home: FC = () => {
       </div>
       <div className="flex flex-col gap-2">
         <h1 className="font-bold text-lg">My Positions</h1>
-        <Accordion title="Collateral" text="this is some text" />
+        {Object.entries(positions).map(([key, value]) => (
+          <div key={key}>
+            {value.supply !== "0" && value.supply !== "0.0" && (
+              <Accordion
+                chain={key}
+                type={`Supplied USDC on ${capitalizeFirstLetter(key)}`}
+                action={"Withdraw"}
+                amount={value.supply}
+                onClick={withdraw}
+              />
+            )}
+            {value.borrow !== "0" && value.borrow !== "0.0" && (
+              <Accordion
+                chain={key}
+                type={`Borrowed USDC on ${capitalizeFirstLetter(key)}`}
+                action={"Repay"}
+                amount={value.borrow}
+                onClick={withdraw}
+              />
+            )}
+          </div>
+        ))}
+        {/* <Accordion title="Collateral" text="this is some text" /> */}
         {/* <div className="w-full h-12 rounded-lg bg-secondary"></div> */}
       </div>
     </div>
