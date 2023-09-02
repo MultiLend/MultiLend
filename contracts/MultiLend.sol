@@ -156,6 +156,7 @@ contract MultiLend {
     }
 
     function borrowOut(address recipient, uint256 amount) public {
+        require(token.approve(address(this), amount), "Approval failed");
         require(
             token.transferFrom(address(this), recipient, amount),
             "Token transfer failed"

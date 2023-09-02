@@ -36,11 +36,11 @@ const mantleContract = new ethers.Contract(
 );
 
 // Listen for BorrowCS Event
-celoContract.on("BorrowCS", async (from, amount, chain, tokenAddress) => {
+celoContract.on("BorrowCS", async (recipient, amount, chain, tokenAddress) => {
   switch (chain) {
     case 5001n:
       console.log("-- Received event to Borrow on Mantle Chain --");
-      const txMantle = await mantleContract.borrowOut(from, amount);
+      const txMantle = await mantleContract.borrowOut(recipient, amount);
       console.log(`Borrowed on Mantle Chain: ${txMantle.hash}`);
       break;
     default:
