@@ -27,7 +27,7 @@
  *
  * MNEMONIC = <Your 12 phrase mnemonic>
  * PROJECT_ID = <Your Infura project id>
- *
+    
  * Deployment with Truffle Dashboard (Recommended for best security practice)
  * --------------------------------------------------------------------------
  *
@@ -41,10 +41,12 @@
  * https://trufflesuite.com/docs/truffle/getting-started/using-the-truffle-dashboard/
  */
 
-// require('dotenv').config();
+  require('dotenv').config();
 // const { MNEMONIC, PROJECT_ID } = process.env;
 
-// const HDWalletProvider = require('@truffle/hdwallet-provider');
+ const HDWalletProvider = require('@truffle/hdwallet-provider');
+
+const PRIVATE_KEY = process.env.PRIVATE_KEY
 
 module.exports = {
   /**
@@ -69,7 +71,16 @@ module.exports = {
      port: 9545,            // Standard Ethereum port (default: none)
      network_id: "*",       // Any network (default: none)
     },
-    
+
+    celo: {
+     provider: () => new HDWalletProvider(PRIVATE_KEY, 'https://alfajores-forno.celo-testnet.org'),
+     network_id: 44787,
+     },
+
+    mantle: {
+     provider: () => new HDWalletProvider(PRIVATE_KEY, 'https://rpc.testnet.mantle.xyz'),
+     network_id: 5001,
+    },
     // An additional network, but with some advanced options…
     // advanced: {
     //   port: 8777,             // Custom port
