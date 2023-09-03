@@ -25,7 +25,7 @@ const Input: FC<Props> = ({
         onClick={chainModal}
       >
         <Image
-          src={`/chains/${chain}.svg`}
+          src={`/chains/${chain.toLowerCase()}.svg`}
           alt={`${chain}-chain`}
           width="16"
           height="16"
@@ -46,7 +46,7 @@ const Input: FC<Props> = ({
         onClick={tokenModal}
       >
         <Image
-          src={`/tokens/${token}.svg`}
+          src={`/tokens/${token.toLowerCase()}.svg`}
           alt={`${token}-token`}
           width="16"
           height="16"

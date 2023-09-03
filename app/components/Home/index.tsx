@@ -413,13 +413,30 @@ const Home: FC = () => {
         console.log(txMnt);
         break;
       case "sepolia":
+        const usdcTokenInstance = new ethers.Contract(
+          SEPOLIA_USDC,
+          ERC20_ABI,
+          await provider.getSigner()
+        );
+    
+        const approveTx = await usdcTokenInstance.approve(
+          SEPOLIA_MULTILEND,
+          ethers.parseEther(amount)
+        );
+    
+        console.log(approveTx);
+        
         const multiLendInstanceEth = new ethers.Contract(
           SEPOLIA_MULTILEND,
           MULTILEND_ABI,
           await provider.getSigner()
         );
 
-        const txEth = multiLendInstanceEth.withdraw(ethers.parseEther(amount));
+        const txEth = multiLendInstanceEth.repayCS(
+          ethers.parseEther(amount),
+          44787,
+          CELO_USDC
+        );
 
         console.log(txEth);
         break;

@@ -120,6 +120,7 @@ sepoliaContract.on("BorrowCS", async (recipient, amount, chain, tokenAddress) =>
 });
 
 sepoliaContract.on("Repay", async (recipient, amount, chain, tokenAddress) => {
+  console.log({recipient, amount, chain, tokenAddress })
  try {
   switch (chain) {
     case 5001n:
@@ -129,7 +130,7 @@ sepoliaContract.on("Repay", async (recipient, amount, chain, tokenAddress) => {
       break;
     case 44787n:
       console.log("-- Received event to Repay on Sepolia Chain --");
-      const txSepolia = await sepoliaContract.repayOut(recipient, amount);
+      const txSepolia = await celoContract.repayOut(recipient, amount);
       console.log(`Repayed on Sepolia Chain: ${txSepolia.hash}`);
  
     default:
