@@ -1,6 +1,6 @@
-import config from '../../config.json'
-import multiLendArtifact from '../../build/contracts/MultiLend.json'
-import usdcArtifact from '../../build/contracts/USDC.json'
+import config from './config.json'
+import multiLendArtifact from './build/contracts/MultiLend.json'
+import usdcArtifact from './build/contracts/USDC.json'
 
 export const CELO_MULTILEND = config.celo.multilend
 export const MANTLE_MULTILEND = config.mantle.multilend

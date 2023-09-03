@@ -2,6 +2,9 @@ const ethers = require("ethers");
 const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
+console.log('CELO_CONTRACT_ADDRESS:', process.env.CELO_CONTRACT_ADDRESS);
+console.log('SEPOLIA_CONTRACT_ADDRESS:', process.env.SEPOLIA_CONTRACT_ADDRESS);
+console.log('MANTLE_CONTRACT_ADDRESS:', process.env.MANTLE_CONTRACT_ADDRESS);
 
 const MLContractBuildPath = path.join(
   __dirname,
@@ -46,6 +49,9 @@ const mantleContract = new ethers.Contract(
   MLContractABI,
   mantlesigner
 );
+console.log('CELO_CONTRACT_ADDRESS:', process.env.CELO_CONTRACT_ADDRESS);
+console.log('SEPOLIA_CONTRACT_ADDRESS:', process.env.SEPOLIA_CONTRACT_ADDRESS);
+console.log('MANTLE_CONTRACT_ADDRESS:', process.env.MANTLE_CONTRACT_ADDRESS);
 
 // Listen for BorrowCS Event
 celoContract.on("BorrowCS", async (recipient, amount, chain, tokenAddress) => {

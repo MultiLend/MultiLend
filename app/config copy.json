@@ -1,0 +1,14 @@
+{
+  "celo": {
+    "usdc": "0x4CbA1B4CD53Cf7F4F9c0864834Bc24319767c522",
+    "multilend": "0x70FdaF7356e3a591786A6EDBF45Ba0DcaD3C8eB4"
+  },
+  "mantle": {
+    "usdc": "0xf0dd58C7ef25a9840067dB1F52dD350f74131c92",
+    "multilend": "0xDb277BEf62e2995b24596c0fA58264795c4de1dA"
+  },
+  "sepolia": {
+    "usdc": "0x472eD945F54B7e6f68a3aB0C4d0Af57ac8d432fe",
+    "multilend": "0x9998b3331570FEe3feC18000a62B39fD1a00afF0"
+  }
+}
