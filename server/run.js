@@ -2,9 +2,9 @@ const ethers = require("ethers");
 const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
-console.log('CELO_CONTRACT_ADDRESS:', process.env.CELO_CONTRACT_ADDRESS);
-console.log('SEPOLIA_CONTRACT_ADDRESS:', process.env.SEPOLIA_CONTRACT_ADDRESS);
-console.log('MANTLE_CONTRACT_ADDRESS:', process.env.MANTLE_CONTRACT_ADDRESS);
+console.log("CELO_CONTRACT_ADDRESS:", process.env.CELO_CONTRACT_ADDRESS);
+console.log("SEPOLIA_CONTRACT_ADDRESS:", process.env.SEPOLIA_CONTRACT_ADDRESS);
+console.log("MANTLE_CONTRACT_ADDRESS:", process.env.MANTLE_CONTRACT_ADDRESS);
 
 const MLContractBuildPath = path.join(
   __dirname,
@@ -49,135 +49,139 @@ const mantleContract = new ethers.Contract(
   MLContractABI,
   mantlesigner
 );
-console.log('CELO_CONTRACT_ADDRESS:', process.env.CELO_CONTRACT_ADDRESS);
-console.log('SEPOLIA_CONTRACT_ADDRESS:', process.env.SEPOLIA_CONTRACT_ADDRESS);
-console.log('MANTLE_CONTRACT_ADDRESS:', process.env.MANTLE_CONTRACT_ADDRESS);
+console.log("CELO_CONTRACT_ADDRESS:", process.env.CELO_CONTRACT_ADDRESS);
+console.log("SEPOLIA_CONTRACT_ADDRESS:", process.env.SEPOLIA_CONTRACT_ADDRESS);
+console.log("MANTLE_CONTRACT_ADDRESS:", process.env.MANTLE_CONTRACT_ADDRESS);
 
 // Listen for BorrowCS Event
 celoContract.on("BorrowCS", async (recipient, amount, chain, tokenAddress) => {
-try{	
-  switch (chain) {
-    case 5001n:
-      console.log("-- Received event to Borrow on Mantle Chain --");
-      const txMantle = await mantleContract.borrowOut(recipient, amount);
-      console.log(`Borrowed on Mantle Chain: ${txMantle.hash}`);
-      break;
-    case 11155111n:
-      console.log("-- Received event to Borrow on Sepolia Chain --");
-      const txSepolia = await sepoliaContract.borrowOut(recipient, amount);
-      console.log(`Borrowed on Sepolia Chain: ${txSepolia.hash}`);
- 
-    default:
-      console.error("Something went wrong, couldnt detect chain");
-  }
-  } catch(error){
- // ignore
+  try {
+    switch (chain) {
+      case 5001n:
+        console.log("-- Received event to Borrow on Mantle Chain --");
+        const txMantle = await mantleContract.borrowOut(recipient, amount);
+        console.log(`Borrowed on Mantle Chain: ${txMantle.hash}`);
+        break;
+      case 11155111n:
+        console.log("-- Received event to Borrow on Sepolia Chain --");
+        const txSepolia = await sepoliaContract.borrowOut(recipient, amount);
+        console.log(`Borrowed on Sepolia Chain: ${txSepolia.hash}`);
+
+      default:
+        console.error("Something went wrong, couldnt detect chain");
+    }
+  } catch (error) {
+    // ignore
   }
 });
-
 
 celoContract.on("Repay", async (recipient, amount, chain, tokenAddress) => {
-try{	
-  switch (chain) {
-    case 5001n:
-      console.log("-- Received event to Repay on Mantle Chain --");
-      const txMantle = await mantleContract.repayOut(recipient, amount);
-      console.log(`Repayed on Mantle Chain: ${txMantle.hash}`);
-      break;
-    case 11155111n:
-      console.log("-- Received event to Repay on Sepolia Chain --");
-      const txSepolia = await sepoliaContract.repayOut(recipient, amount);
-      console.log(`Repay on Sepolia Chain: ${txSepolia.hash}`);
- 
-    default:
-      console.error("Something went wrong, couldnt detect chain");
-  }
-  } catch(error){
- // ignore
+  try {
+    switch (chain) {
+      case 5001n:
+        console.log("-- Received event to Repay on Mantle Chain --");
+        const txMantle = await mantleContract.repayOut(recipient, amount);
+        console.log(`Repayed on Mantle Chain: ${txMantle.hash}`);
+        break;
+      case 11155111n:
+        console.log("-- Received event to Repay on Sepolia Chain --");
+        const txSepolia = await sepoliaContract.repayOut(recipient, amount);
+        console.log(`Repay on Sepolia Chain: ${txSepolia.hash}`);
+
+      default:
+        console.error("Something went wrong, couldnt detect chain");
+    }
+  } catch (error) {
+    // ignore
   }
 });
 
-
-sepoliaContract.on("BorrowCS", async (recipient, amount, chain, tokenAddress) => {
- try {
-  switch (chain) {
-    case 5001n:
-      console.log("-- Received event to Borrow on Mantle Chain --");
-      const txMantle = await mantleContract.borrowOut(recipient, amount);
-      console.log(`Borrowed on Mantle Chain: ${txMantle.hash}`);
-      break;
-    case 44787n:
-      console.log("-- Received event to Borrow on Sepolia Chain --");
-      const txSepolia = await sepoliaContract.borrowOut(recipient, amount);
-      console.log(`Borrowed on Sepolia Chain: ${txSepolia.hash}`);
- 
-    default:
-      console.error("Something went wrong, couldnt detect chain");
-  }
-} catch (error) {
-  // ignore the error or log it somewhere else
-}
+celoContract.on("*", (event) => {
+  console.log(event);
 });
+
+sepoliaContract.on(
+  "BorrowCS",
+  async (recipient, amount, chain, tokenAddress) => {
+    try {
+      switch (chain) {
+        case 5001n:
+          console.log("-- Received event to Borrow on Mantle Chain --");
+          const txMantle = await mantleContract.borrowOut(recipient, amount);
+          console.log(`Borrowed on Mantle Chain: ${txMantle.hash}`);
+          break;
+        case 44787n:
+          console.log("-- Received event to Borrow on Sepolia Chain --");
+          const txSepolia = await sepoliaContract.borrowOut(recipient, amount);
+          console.log(`Borrowed on Sepolia Chain: ${txSepolia.hash}`);
+
+        default:
+          console.error("Something went wrong, couldnt detect chain");
+      }
+    } catch (error) {
+      // ignore the error or log it somewhere else
+    }
+  }
+);
 
 sepoliaContract.on("Repay", async (recipient, amount, chain, tokenAddress) => {
-  console.log({recipient, amount, chain, tokenAddress })
- try {
-  switch (chain) {
-    case 5001n:
-      console.log("-- Received event to Repay on Mantle Chain --");
-      const txMantle = await mantleContract.repayOut(recipient, amount);
-      console.log(`Repayed on Mantle Chain: ${txMantle.hash}`);
-      break;
-    case 44787n:
-      console.log("-- Received event to Repay on Sepolia Chain --");
-      const txSepolia = await celoContract.repayOut(recipient, amount);
-      console.log(`Repayed on Sepolia Chain: ${txSepolia.hash}`);
- 
-    default:
-      console.error("Something went wrong, couldnt detect chain");
+  console.log({ recipient, amount, chain, tokenAddress });
+  try {
+    switch (chain) {
+      case 5001n:
+        console.log("-- Received event to Repay on Mantle Chain --");
+        const txMantle = await mantleContract.repayOut(recipient, amount);
+        console.log(`Repayed on Mantle Chain: ${txMantle.hash}`);
+        break;
+      case 44787n:
+        console.log("-- Received event to Repay on Sepolia Chain --");
+        const txSepolia = await celoContract.repayOut(recipient, amount);
+        console.log(`Repayed on Sepolia Chain: ${txSepolia.hash}`);
+
+      default:
+        console.error("Something went wrong, couldnt detect chain");
+    }
+  } catch (error) {
+    // ignore the error or log it somewhere else
   }
-} catch (error) {
-  // ignore the error or log it somewhere else
-}
 });
 
-
 mantleContract.on("BorrowCS", async (from, amount, chain, tokenAddress) => {
-  try {	
-  switch (chain) {
-    case 44787n:
-      console.log("-- Received event to Borrow on Celo Chain --");
-      const txCelo = await celoContract.borrowOut(from, amount);
-      console.log(`Borrowed on Celo Chain: ${txCelo.hash}`);
-     case 11155111n:
+  try {
+    switch (chain) {
+      case 44787n:
+        console.log("-- Received event to Borrow on Celo Chain --");
+        const txCelo = await celoContract.borrowOut(from, amount);
+        console.log(`Borrowed on Celo Chain: ${txCelo.hash}`);
+      case 11155111n:
         console.log("-- Received event to Borrow on Sepolia Chain --");
         const txMantle = await sepoliaContract.borrowOut(recipient, amount);
         console.log(`Borrowed on Sepolia Chain: ${txMantle.hash}`);
-      break;
-    default:
-      console.error("Something went wrong, couldnt detect chain");
-   }} catch(error){
-	console.log("ERRORR")
-}
-  
+        break;
+      default:
+        console.error("Something went wrong, couldnt detect chain");
+    }
+  } catch (error) {
+    console.log("ERRORR");
+  }
 });
 
 mantleContract.on("Repay", async (from, amount, chain, tokenAddress) => {
-  try {	
-  switch (chain) {
-    case 44787n:
-      console.log("-- Received event to Repay on Celo Chain --");
-      const txCelo = await celoContract.repayOut(from, amount);
-      console.log(`Repayed on Celo Chain: ${txCelo.hash}`);
-     case 11155111n:
+  try {
+    switch (chain) {
+      case 44787n:
+        console.log("-- Received event to Repay on Celo Chain --");
+        const txCelo = await celoContract.repayOut(from, amount);
+        console.log(`Repayed on Celo Chain: ${txCelo.hash}`);
+      case 11155111n:
         console.log("-- Received event to Repay on Sepolia Chain --");
         const txMantle = await sepoliaContract.repayOut(recipient, amount);
         console.log(`Repayed on Sepolia Chain: ${txMantle.hash}`);
-      break;
-    default:
-      console.error("Something went wrong, couldnt detect chain");
-   }} catch(error){
-	console.log("ERRORR")
-}
-  
+        break;
+      default:
+        console.error("Something went wrong, couldnt detect chain");
+    }
+  } catch (error) {
+    console.log("ERRORR");
+  }
 });

@@ -413,6 +413,7 @@ const Home: FC = () => {
         console.log(txMnt);
         break;
       case "sepolia":
+        console.log('here')
         const usdcTokenInstance = new ethers.Contract(
           SEPOLIA_USDC,
           ERC20_ABI,
@@ -452,7 +453,7 @@ const Home: FC = () => {
     const provider = new BrowserProvider(ethereum);
 
     const multiLendInstanceCelo = new ethers.Contract(
-      CELO_MULTILEND,
+      SEPOLIA_MULTILEND,
       MULTILEND_ABI,
       await provider.getSigner()
     );
